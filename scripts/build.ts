@@ -30,6 +30,7 @@ const isText = (path: string) => /\.(md|mdc|txt|ya?ml|tsv)$/.test(path)
 async function walk(dir: string): Promise<string[]> {
   const out: string[] = []
   for (const entry of await readdir(dir).catch(() => [])) {
+    if (entry === "node_modules") continue
     const path = join(dir, entry)
     if ((await stat(path)).isDirectory()) out.push(...(await walk(path)))
     else out.push(path)
