@@ -1,0 +1,30 @@
+{
+  "name": "pstack-opencode",
+  "version": "0.1.0",
+  "description": "poteto's pstack (Cursor) ported to OpenCode V2: skills, playbooks, subagents, and the host features they need.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/index.ts"
+  },
+  "files": [
+    "index.ts",
+    "src",
+    "dist"
+  ],
+  "scripts": {
+    "sync": "bun scripts/sync.ts",
+    "sync:latest": "bun scripts/sync.ts --latest",
+    "build": "bun scripts/build.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.0.28"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.3",
+    "typescript": "^5.9.0"
+  }
+}

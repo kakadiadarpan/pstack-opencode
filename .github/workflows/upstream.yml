@@ -1,0 +1,35 @@
+name: upstream
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run sync:latest
+      - id: build
+        name: build (a failing rule means upstream changed text the port rewrites)
+        run: bun run build 2>&1 | tee build.log
+        continue-on-error: true
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: upstream-sync
+          title: "Sync upstream pstack"
+          commit-message: "chore: sync upstream pstack"
+          body: |
+            Moves the upstream pin in `upstream.json` and re-vendors `vendor/`.
+            Build outcome: `${{ steps.build.outcome }}`. When it failed, update `port/rules.ts`, `port/overrides/`, or `port/lint.ts` on this branch until `bun run build` passes.
+          add-paths: |
+            upstream.json
+            vendor
+            dist
