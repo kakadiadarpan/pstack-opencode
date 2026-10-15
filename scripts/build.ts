@@ -1,13 +1,16 @@
 #!/usr/bin/env bun
 // Builds dist/ from vendor/ (verbatim upstream) + port/rules.ts + port/overrides + port/additions.
 // Fails when a rule stops matching (upstream drifted) or a Cursor-ism survives into dist/.
-import { cp, mkdir, readdir, rm, stat } from "node:fs/promises"
+import { cp, mkdir, readdir, rename, rm, stat } from "node:fs/promises"
 import { dirname, join, relative } from "node:path"
 import { rules, type Rule } from "../port/rules.ts"
 import { residue, allowed } from "../port/lint.ts"
 
 const root = join(import.meta.dir, "..")
-const dist = join(root, "dist")
+const finalDist = join(root, "dist")
+// Build beside dist/ and swap at the end, so a running OpenCode that watches the plugin never
+// reloads a half-written tree.
+const dist = join(root, ".dist-build")
 const overridesDir = join(root, "port/overrides")
 const additionsDir = join(root, "port/additions")
 
@@ -124,10 +127,15 @@ for (const rel of written.filter((p) => p.endsWith(".md")).sort()) {
 await Bun.write(join(dist, "manifest.json"), JSON.stringify(await manifest(), null, 2) + "\n")
 
 if (problems.length) {
+  await rm(dist, { recursive: true, force: true })
   console.error(problems.join("\n"))
   console.error(`\n${problems.length} problem(s)`)
   process.exit(1)
 }
+await rm(join(root, ".dist-old"), { recursive: true, force: true })
+await rename(finalDist, join(root, ".dist-old")).catch(() => undefined)
+await rename(dist, finalDist)
+await rm(join(root, ".dist-old"), { recursive: true, force: true })
 console.log(`built ${written.length} files into dist/`)
 
 async function manifest() {

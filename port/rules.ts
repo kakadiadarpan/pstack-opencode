@@ -209,6 +209,27 @@ export const rules: Rule[] = [
     why: "OpenCode has no cloud work that survives a restart",
   },
   {
+    find: "Assume the VM dies.",
+    replace: "Assume the agent dies.",
+    why: "OpenCode subagents run locally; the session or machine is what dies",
+  },
+  {
+    find: "Work that exists only on one VM when that VM dies was never done.",
+    replace: "Work that exists only in one worktree when its agent dies was never done.",
+    why: "OpenCode workers live in worktrees, not VMs",
+  },
+  {
+    find: "- [ ] Record a 30 to 60 second video of the change on a lane VM.",
+    replace: "- [ ] Record a 30 to 60 second video of the change from a lane worktree.",
+    why: "OpenCode lanes run in local worktrees",
+  },
+  {
+    find: /(?:current|root) agent's store \(path in the system prompt\)/g,
+    replace: "pstack store (path in the system prompt)",
+    count: 2,
+    why: "Cursor names a per-agent store; the plugin names a per-project pstack store",
+  },
+  {
     find: "a cloud-agent URL, or a pushed branch.",
     replace: "another OpenCode session ID, or a pushed branch.",
     why: "OpenCode has no cloud-agent URLs",

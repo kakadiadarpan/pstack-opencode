@@ -1,4 +1,5 @@
 import { Agent, Plugin, Skill } from "@opencode/plugin"
+import { homedir } from "node:os"
 import { join } from "node:path"
 import { agentPrompt, body, distDir, manifest } from "./assets.ts"
 import { createLoops } from "./loop.ts"
@@ -10,13 +11,16 @@ const routing = [
   "Route rigorous work through pstack. Before starting a task that touches more than one file, changes a signature other files call, involves a design or architecture choice, or concerns a bug with an unknown cause or a performance issue, load the `poteto-mode` skill with the skill tool and follow it. Smaller tasks proceed directly. Explicit user instructions win.",
 ].join("\n")
 
-const runtime = (sessionID: string) =>
+const dataHome = process.env.XDG_DATA_HOME ?? join(homedir(), ".local", "share")
+
+const runtime = (sessionID: string, store: string) =>
   [
     "pstack for OpenCode is installed. When a pstack skill runs, these host facts replace its Cursor defaults:",
     '- Subagents use the `subagent` tool. `agent: "poteto-agent"` for playbook delegates. `agent: "general"` for full-tool helpers that need MCP (it cannot spawn or ask questions). `agent: "explore"` for read-only work (no edits, no MCP). `agent: "comment-sicko"` for /no-comments. `background: true` returns at once and you are notified when the child finishes.',
     "- A role's model from the pstack model sheet below counts as the user explicitly asking for that model, so pass it as the subagent `model`.",
     "- The todo list is the `todo` tool. Wake-ups and `/loop` are the `loop` tool. Past sessions are the `transcripts` tool. Isolated checkouts come from the `worktree_create` tool.",
     `- This session's ID is ${sessionID}.`,
+    `- The pstack store for this project (where playbooks keep ledgers, trails, and orchestrate state) is ${store}.`,
   ].join("\n")
 
 export default Plugin.define({
@@ -25,6 +29,7 @@ export default Plugin.define({
     const options = ctx.options as { routing?: boolean; commands?: boolean }
     const loops = createLoops(ctx)
     const prompts = new Map(manifest.agents.map((a) => [a.id, agentPrompt(a)]))
+    const store = join(dataHome, "opencode", "pstack", "store", ctx.location.project.id)
 
     await ctx.skill.transform((editor) => {
       for (const skill of manifest.skills) {
@@ -83,7 +88,7 @@ export default Plugin.define({
     })
 
     await ctx.session.hook("context", async (event) => {
-      const parts = [`<pstack-runtime>\n${runtime(event.sessionID)}\n</pstack-runtime>`]
+      const parts = [`<pstack-runtime>\n${runtime(event.sessionID, store)}\n</pstack-runtime>`]
       if (options.routing) parts.push(`<pstack-routing>\n${routing}\n</pstack-routing>`)
       parts.push(`<pstack-model-sheet>\n${renderSheet(ctx.location.directory)}\n</pstack-model-sheet>`)
       const agent = prompts.get(event.agent)
