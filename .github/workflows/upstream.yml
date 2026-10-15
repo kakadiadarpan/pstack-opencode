@@ -19,7 +19,7 @@ jobs:
       - run: bun run sync:latest
       - id: build
         name: build (a failing rule means upstream changed text the port rewrites)
-        run: bun run build 2>&1 | tee build.log
+        run: bun run dist 2>&1 | tee build.log
         continue-on-error: true
       - uses: peter-evans/create-pull-request@v7
         with:
@@ -28,7 +28,7 @@ jobs:
           commit-message: "chore: sync upstream pstack"
           body: |
             Moves the upstream pin in `upstream.json` and re-vendors `vendor/`.
-            Build outcome: `${{ steps.build.outcome }}`. When it failed, update `port/rules.ts`, `port/overrides/`, or `port/lint.ts` on this branch until `bun run build` passes.
+            Build outcome: `${{ steps.build.outcome }}`. When it failed, update `port/rules.ts`, `port/overrides/`, or `port/lint.ts` on this branch until `bun run dist` passes.
           add-paths: |
             upstream.json
             vendor

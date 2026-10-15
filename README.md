@@ -69,7 +69,7 @@ To pull a new upstream version:
 ```sh
 bun install
 bun run sync:latest   # move the pin and re-vendor
-bun run build         # fix any failing rule or lint hit, then rebuild
+bun run dist          # fix any failing rule or lint hit, then rebuild
 bun test && bun run typecheck
 ```
 
