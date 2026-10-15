@@ -24,7 +24,7 @@ That covers the session (`<id>/<id>.jsonl`) and subagent (`<parent>/subagents/<c
 
 One message, three `subagent` calls, `agent: "general"`. Reviewers need MCP access to look up the tickets, chat threads, and observability traces the transcript references, and the read-only `explore` agent has no MCP tools.
 
-Each reviewer and the synthesizer name a role line in the pstack model sheet and a default. Set `model` to that line's value, or to the default if the rule or the line is missing. Leave `model` unset when the value is `auto` or `inherit-parent`. If with the `subagent` tool rejects a model, use the default and say so. If it rejects the default, use the closest valid model of the same family that the `models` tool lists. Pick each subagent's reasoning level and fast or standard speed for the job, per the Subagents section of the **poteto-mode** skill.
+Each reviewer and the synthesizer name a role line in the pstack model sheet and a default. Set `model` to that line's value, or to the default if the rule or the line is missing. Leave `model` unset when the value is `auto` or `inherit-parent`. If the `subagent` tool rejects a model, use the default and say so. If it rejects the default, use the closest valid model of the same family that the `models` tool lists. Pick each subagent's reasoning level and fast or standard speed for the job, per the Subagents section of the **poteto-mode** skill.
 
 | Lens | Role line | Default `model` | Prompt template |
 |---|---|---|---|

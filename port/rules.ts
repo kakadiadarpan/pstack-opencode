@@ -167,8 +167,8 @@ export const rules: Rule[] = [
     why: "OpenCode loads skills through the skill tool and from different directories",
   },
   {
-    find: /(?:with |through )?the Task tool/g,
-    replace: "with the `subagent` tool",
+    find: /the Task tool/g,
+    replace: "the `subagent` tool",
     why: "tool rename",
   },
   {
