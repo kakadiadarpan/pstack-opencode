@@ -28,7 +28,7 @@ jobs:
           commit-message: "chore: sync upstream pstack"
           body: |
             Moves the upstream pin in `upstream.json` and re-vendors `vendor/`.
-            Build outcome: `${{ steps.build.outcome }}`. When it failed, update `port/rules.ts`, `port/overrides/`, or `port/lint.ts` on this branch until `bun run dist` passes.
+            Build outcome: `${{ steps.build.outcome }}`. When it failed, update `port/rules.ts`, `port/overrides/` and its pins in `port/overrides.json`, or `port/lint.ts` on this branch until `bun run dist` passes.
           add-paths: |
             upstream.json
             vendor

@@ -53,19 +53,19 @@ export const rules: Rule[] = [
     why: "OpenCode model IDs depend on the user's providers; the sheet maps judgment-default to one",
   },
   {
-    find: "Families go by prefix: `claude-*`, and `grok-*` with `cursor-grok-*` and `composer-*`. A refused `composer-*` entry runs on `code-default`. With no family match, use `judgment-default`.",
-    replace: "Families go by the vendor segment of the model ID (`anthropic` in `vercel/anthropic/claude-opus-5.5`, or the provider ID when the model ID has no vendor segment). With no family match, use `judgment-default`.",
-    why: "OpenCode model IDs carry the vendor, not a Cursor slug prefix",
+    find: "Families go by prefix: `claude-*`, and `grok-*` with `cursor-grok-*` and `composer-*`. A refused `composer-*` entry runs on `code-default`.",
+    replace: "Families go by the vendor segment of the model ID (`anthropic` in `vercel/anthropic/claude-opus-5.5`, or the provider ID when the model ID has no vendor segment). A family's default is whichever of `judgment-default` and `code-default` resolves to a model of that family.",
+    why: "OpenCode model IDs carry the vendor, not a Cursor slug prefix, and the defaults are the sheet's two aliases",
   },
   {
-    find: "Families go by prefix: `claude-*`, and `grok-*` with `cursor-grok-*` and `composer-*`. A refused `composer-*` entry runs on Reviewer B's default. With no family match, use Reviewer A's default.",
-    replace: "Families go by the vendor segment of the model ID (`anthropic` in `vercel/anthropic/claude-opus-5.5`, or the provider ID when the model ID has no vendor segment). With no family match, use Reviewer A's default.",
-    why: "OpenCode model IDs carry the vendor, not a Cursor slug prefix",
+    find: "With the default pool, a Claude parent gets `code-default`. A parent from any other family gets `judgment-default` first. If the Task tool rejects an entry, use a valid slug of the same model at the closest level or speed from the error message, or move to the next entry when there is none.",
+    replace: "With the default pool, the judge runs on the first of `judgment-default` and `code-default` that resolves to another family. If the `subagent` tool rejects an entry, use the same model at the closest variant or speed that the `models` tool lists, or move to the next entry when there is none.",
+    why: "the default pool is the sheet's two aliases, which can resolve to any family, and OpenCode lists valid models through the models tool",
   },
   {
-    find: "If it rejects a table default, spawn with the closest equivalent from the valid slugs in its error message (prefer the same family and reasoning tier), and open a separate PR to update the default table.",
-    replace: "If it rejects a table default, spawn with the closest equivalent the `models` tool lists (prefer the same family and variant), and rerun `/setup-pstack` to fix the sheet.",
-    why: "OpenCode lists valid models through the models tool; defaults live in the user's sheet, not in this repo",
+    find: "If you do not know the parent's model, try the pool's real slugs in pool order",
+    replace: "If you do not know the parent's model, try the pool's entries other than `auto` and `inherit-parent` in pool order",
+    why: "OpenCode pool entries are model refs or the sheet's aliases, not slugs",
   },
   {
     find: /use the closest valid slug of the same family from its error message/g,
@@ -78,16 +78,16 @@ export const rules: Rule[] = [
     why: "OpenCode passes `provider/model#variant` refs, not slugs",
   },
   {
-    find: "**Match the model to the job.** Before each spawn, start from the role's line or default and pick the reasoning level and speed the job needs. The `/setup-pstack` budget sets each role's starting level, xhigh by default. Raise it one step, up to max, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Use fast mode only when the job is urgent, meaning CI or trunk is red or a person is blocked on the result right now. Otherwise use standard speed, the same slug without `-fast`. Verification is the exception and stays on the `swarm workers` model and speed (`code-default` by default). Change only the effort level and whether the slug is fast, and keep the family the role names, so a diverse panel stays diverse. If the family has no slug at that level and speed, use its nearest slug. A role on `auto` or `inherit-parent` stays on the parent model. If the Task tool rejects the adjusted slug, do not try another adjusted slug. Use the role's line or default and say so.",
-    replace: "**Match the model to the job.** Before each spawn, start from the role's line or default and pick the reasoning level and speed the job needs. The reasoning level is the `#variant` suffix of the model ref (`vercel/anthropic/claude-opus-5.5#xhigh`), and the `models` tool lists each model's variants. The `/setup-pstack` budget sets each role's starting variant, xhigh by default. Raise it one step on the ladder `max` > `xhigh` > `high` > `medium` > `low`, up to the model's highest variant, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Use a fast model (an ID ending in `-fast`) only when the job is urgent, meaning CI or trunk is red or a person is blocked on the result right now. Otherwise use the standard model of the same family when the `models` tool lists one. Verification is the exception and stays on the `swarm workers` model and speed (`code-default` by default). Change only the variant and whether the model is fast, and keep the family the role names, so a diverse panel stays diverse. If the model has no variant at that level, use its nearest variant. A role on `auto` or `inherit-parent` stays on the parent model. If the `subagent` tool rejects the adjusted ref, do not try another adjusted ref. Use the role's line or default and say so.",
-    why: "OpenCode encodes effort as a model variant and speed as a separate -fast model ID",
+    find: "**Match the model to the job.** Before each spawn, start from the role's line or default and pick the reasoning level and speed the job needs. The `/setup-pstack` budget sets each role's starting level, xhigh by default. Raise it one step, up to max, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Use fast mode only when the job is urgent, meaning CI or trunk is red or a person is blocked on the result right now. Otherwise use standard speed, the same slug without `-fast`. Verification is the exception and stays on the `swarm workers` model and speed (`code-default` by default). Change only the effort level and whether the slug is fast, and keep the family the role names, so a diverse panel stays diverse. If the family has no slug at that level and speed, use its nearest slug. A role on `auto` or `inherit-parent` stays on the parent model. If the Task tool rejects the adjusted slug, do not try another adjusted slug. Use the role's line or default and say so. If the Task tool rejects that too, continue with the calling skill's fallback. A slug counts as rejected once a Task error says that the model is not valid, or leaves the slug out of its list of valid slugs. Never pass a rejected slug, and skip any fallback whose slug is already rejected. When the calling skill has no fallback, use the closest valid slug of the role's family from the error's list of valid slugs, or omit `model` so the subagent runs on the parent model when the list has none. When the calling skill's fallback runs out of slugs without saying what to do next, omit `model` too. Say so in both cases.",
+    replace: "**Match the model to the job.** Before each spawn, start from the role's line or default and pick the reasoning level and speed the job needs. The reasoning level is the `#variant` suffix of the model ref (`vercel/anthropic/claude-opus-5.5#xhigh`), and the `models` tool lists each model's variants. The `/setup-pstack` budget sets each role's starting variant, xhigh by default. Raise it one step on the ladder `max` > `xhigh` > `high` > `medium` > `low`, up to the model's highest variant, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Use a fast model (an ID ending in `-fast`) only when the job is urgent, meaning CI or trunk is red or a person is blocked on the result right now. Otherwise use the standard model of the same family when the `models` tool lists one. Verification is the exception and stays on the `swarm workers` model and speed (`code-default` by default). Change only the variant and whether the model is fast, and keep the family the role names, so a diverse panel stays diverse. If the model has no variant at that level, use its nearest variant. A role on `auto` or `inherit-parent` stays on the parent model. If the `subagent` tool rejects the adjusted ref, do not try another adjusted ref. Use the role's line or default and say so. If the `subagent` tool rejects that too, continue with the calling skill's fallback. A ref counts as rejected once a `subagent` error says that the model is not valid. Never pass a rejected ref, and skip any fallback whose ref is already rejected. When the calling skill has no fallback, use the closest model of the role's family that the `models` tool lists, or omit `model` so the subagent runs on the parent model when it lists none. When the calling skill's fallback runs out of refs without saying what to do next, omit `model` too. Say so in both cases.",
+    why: "OpenCode encodes effort as a model variant and speed as a separate -fast model ID, and its subagent error points at the models tool instead of listing valid slugs",
   },
 
   // ── Subagents: Cursor Task tool → OpenCode subagent tool ──────────────────────────────────────────
   {
-    find: "**Defaults for every `Task` call.** `run_in_background: true`, agent mode (readonly strips MCP), file pointers not inlined context,",
-    replace: "**Defaults for every `subagent` call.** `background: true`, a full-tool agent such as `poteto-agent` or `general` (the read-only `explore` agent has no MCP tools), file pointers not inlined context,",
-    why: "OpenCode's subagent tool takes `background`; read-only is the explore agent",
+    find: "**Defaults for every `Task` call.** `run_in_background: true` (a steer or resume of a running agent too, because a foreground call holds your turn while other reports wait), agent mode (readonly strips MCP), file pointers not inlined context,",
+    replace: "**Defaults for every `subagent` call.** `background: true` (a steer or resume of a running agent through its `sessionID` too, because a foreground call holds your turn while other reports wait), a full-tool agent such as `poteto-agent` or `general` (the read-only `explore` agent has no MCP tools), file pointers not inlined context,",
+    why: "OpenCode's subagent tool takes `background` and resumes by `sessionID`; read-only is the explore agent",
   },
   {
     find: "explicit model per role (configurable via `/setup-pstack`.",
@@ -105,9 +105,9 @@ export const rules: Rule[] = [
     why: "Cursor readonly generalPurpose is OpenCode's explore agent",
   },
   {
-    find: "Each reviewer gets `subagent_type: generalPurpose`, `readonly: true`, and `model`",
-    replace: "Each reviewer gets `agent: \"explore\"` (read-only) and `model`",
-    why: "Cursor readonly generalPurpose is OpenCode's explore agent",
+    find: "Spawn each adversary as `generalPurpose`.",
+    replace: "Spawn each adversary with `agent: \"general\"`.",
+    why: "adversaries write repros and run them in their own worktrees, so they need OpenCode's full-tool general agent",
   },
   {
     find: "Every spawn is `generalPurpose` with `readonly: false` (agent mode). **Do not use readonly/Ask mode.** It strips MCP access,",
@@ -125,13 +125,13 @@ export const rules: Rule[] = [
     why: "Cursor agent-mode generalPurpose is OpenCode's general agent",
   },
   {
-    find: "Spawn all N workers in one message with `subagent_type: generalPurpose`, `environment: \"cloud\"`, `run_in_background: true`, and the step 4 model, left unset for `auto` or `inherit-parent`. Use `environment: \"local\"` only when the worker needs access to something on the user's computer.",
-    replace: "Spawn all N workers in one message with `agent: \"general\"`, `background: true`, and the step 4 model, left unset for `auto` or `inherit-parent`. Give each worker that edits files, builds, or runs the app its own git worktree: create it with the `worktree_create` tool, put its absolute path in the brief, and tell the worker to set `workdir` on every shell call and use absolute paths. Read-only workers share the current checkout.",
+    find: "Spawn all N workers in one message with `subagent_type: generalPurpose`, `environment: \"cloud\"`, `run_in_background: true`, and the step 3 model, left unset for `auto` or `inherit-parent`. Use `environment: \"local\"` only when the worker needs access to something on the user's computer.",
+    replace: "Spawn all N workers in one message with `agent: \"general\"`, `background: true`, and the step 3 model, left unset for `auto` or `inherit-parent`. Give each worker that edits files, builds, or runs the app its own git worktree: create it with the `worktree_create` tool, put its absolute path in the brief, and tell the worker to set `workdir` on every shell call and use absolute paths. Read-only workers share the current checkout.",
     why: "OpenCode has no cloud subagents; a git worktree per worker gives the same isolation locally",
   },
   {
-    find: "Spawn one readonly judge subagent on that model.",
-    replace: "Spawn one read-only judge subagent (`agent: \"explore\"`) on that model.",
+    find: "Spawn one readonly judge subagent.",
+    replace: "Spawn one read-only judge subagent (`agent: \"explore\"`).",
     why: "read-only is the explore agent",
   },
   {
@@ -156,9 +156,14 @@ export const rules: Rule[] = [
     why: "parameter rename",
   },
   {
-    find: "(nesting works to depth 3, and a nested spawn has the full Task schema including `environment`)",
-    replace: "(nesting works to depth 3 once `experimental.subagent_depth` is 3, which `/setup-pstack` sets, and a nested spawn has the full `subagent` schema)",
+    find: "Stop at three levels: you, sub-coordinators, and workers.",
+    replace: "Stop at three levels: you, sub-coordinators, and workers. OpenCode nests that deep once `experimental.subagent_depth` is 3, which `/setup-pstack` sets.",
     why: "OpenCode limits nesting to depth 1 unless experimental.subagent_depth is raised",
+  },
+  {
+    find: "Spawn workers with `Task`.",
+    replace: "Spawn workers with the `subagent` tool.",
+    why: "tool rename",
   },
   {
     find: "A skill counts as used when the transcript shows a `Read` of its `SKILL.md` (under `.cursor/skills/`, `~/.cursor/skills/`, or `~/.cursor/plugins/`), a `Task` prompt naming its path, or a tool call (Shell, Grep, MCP, etc.) matching its documented commands.",
@@ -194,29 +199,24 @@ export const rules: Rule[] = [
     why: "OpenCode has no cloud VMs",
   },
   {
-    find: "- **Worker / verifier.** Always `environment: \"cloud\"` unless the task needs this machine: `control-ui` or `control-cli` runtime verification (from `cursor-team-kit`). Reading local transcripts under `agent-transcripts/`. Simulators and local IDE state. Auth that exists only here. Cloud agents cannot read the local store, so their briefs inline what they need or point at repo paths.",
-    replace: "- **Worker / verifier.** Always in its own git worktree (`worktree_create`), never the coordinator's checkout. Put the worktree's absolute path in the brief and require `workdir` on every shell call. Workers start with fresh context, so their briefs inline what they need or point at repo paths.",
+    find: "Run workers on a new cloud VM (`environment: \"cloud\"`) unless the work needs this machine: a `control-ui` or `control-cli` runtime check (from `cursor-team-kit`), local transcripts, a simulator, or auth that exists only here.",
+    replace: "Give each worker that edits files, builds, or runs the app its own git worktree from the `worktree_create` tool, never your checkout. Put the worktree's absolute path in its kickoff, and tell it to set `workdir` on every shell call and use absolute paths.",
     why: "OpenCode subagents all run on this machine; worktrees replace cloud VMs",
   },
   {
-    find: "the cloud agent's status in the Cursor dashboard.",
-    replace: "the child session's state (`opencode session export <id>`).",
-    why: "OpenCode has no agent dashboard; child sessions are readable through the CLI",
+    find: "- **Fork when new work needs a worker's built state,** such as its checkout, uncommitted changes, or a running process.",
+    replace: "- **Hand a worker's worktree to a fresh worker when new work needs its built state,** such as its checkout, uncommitted changes, or a running process. Paste the first worker's report into the new kickoff, and keep one writer in a worktree at a time.",
+    why: "OpenCode's subagent tool cannot fork an agent; the built state lives in the worker's local worktree",
   },
   {
-    find: "After a Cursor restart: local agents are dead, cloud work is not. Re-read the standing orders and `units.tsv`, recompute the frontier, reattach cloud work by PR and branch rather than agent id,",
-    replace: "After an OpenCode restart: running subagents are dead, but their worktrees, branches, and pushed PRs are not. Re-read the standing orders and `units.tsv`, recompute the frontier, reattach work by PR and branch rather than agent id,",
-    why: "OpenCode has no cloud work that survives a restart",
+    find: "Keep the program's state in the Project tracker (`notes.md`) and the Project store.",
+    replace: "Keep the program's state in `orchestrate/<program-slug>/` in the pstack store (path in the system prompt), with a `notes.md` tracker there.",
+    why: "OpenCode has no Projects; the plugin names a per-project pstack store",
   },
   {
     find: "Assume the VM dies.",
     replace: "Assume the agent dies.",
     why: "OpenCode subagents run locally; the session or machine is what dies",
-  },
-  {
-    find: "Work that exists only on one VM when that VM dies was never done.",
-    replace: "Work that exists only in one worktree when its agent dies was never done.",
-    why: "OpenCode workers live in worktrees, not VMs",
   },
   {
     find: "- [ ] Record a 30 to 60 second video of the change on a lane VM.",
@@ -226,13 +226,47 @@ export const rules: Rule[] = [
   {
     find: /(?:current|root) agent's store \(path in the system prompt\)/g,
     replace: "pstack store (path in the system prompt)",
-    count: 2,
     why: "Cursor names a per-agent store; the plugin names a per-project pstack store",
   },
   {
     find: "a cloud-agent URL, or a pushed branch.",
     replace: "another OpenCode session ID, or a pushed branch.",
     why: "OpenCode has no cloud-agent URLs",
+  },
+  {
+    find: "from a transcript, cloud-agent URL, or pushed branch.",
+    replace: "from a transcript, another OpenCode session ID, or a pushed branch.",
+    why: "OpenCode has no cloud-agent URLs",
+  },
+  {
+    find: "When a worker must start from a non-default pushed branch, pass `cloud_base_branch`.",
+    replace: "When a worker must start from a non-default pushed branch, name the branch in its brief and have it check the branch out in its worktree first.",
+    why: "OpenCode's subagent tool has no base-branch field; the worker checks out the branch itself",
+  },
+  {
+    find: "| Run parallel checks over slices, or race workers, as cloud agents |",
+    replace: "| Run parallel checks over slices, or race workers, each in its own worktree |",
+    why: "OpenCode has no cloud agents",
+  },
+  {
+    find: "Give each agent its own worktree, or run them as cloud agents, which each get their own machine.",
+    replace: "Give each agent its own git worktree, made with the `worktree_create` tool.",
+    why: "OpenCode has no cloud agents",
+  },
+  {
+    find: "Run them as cloud agents, or say \"own worktree per attempt\".",
+    replace: "Say \"own worktree per attempt\".",
+    why: "OpenCode has no cloud agents",
+  },
+  {
+    find: "an isolated worktree or cloud agent,",
+    replace: "an isolated worktree,",
+    why: "OpenCode has no cloud agents",
+  },
+  {
+    find: "write the file under the agent store's `docs/`.",
+    replace: "write the file under `docs/` in the pstack store (path in the system prompt).",
+    why: "Cursor names a per-agent store; the plugin names a per-project pstack store",
   },
 
   // ── Transcripts: agent-transcripts/ → the plugin's `transcripts` tool ─────────────────────────────
@@ -346,13 +380,18 @@ export const rules: Rule[] = [
     why: "the port bundles the control skills",
   },
   {
-    find: / \(?from `cursor-team-kit`\)?/g,
+    find: / (?:\(from `cursor-team-kit`\)|from `cursor-team-kit`)/g,
     replace: "",
     count: 4,
-    why: "the port bundles these skills",
+    why: "the port bundles these skills. A bare `from` never takes a parenthesis, which can close an outer `(such as ...`",
   },
 
   // ── Paths ─────────────────────────────────────────────────────────────────────────────────────────
+  {
+    find: "Never edit a skill under `plugins/cache/`.",
+    replace: "Never edit a skill under the pstack plugin's `dist/skills/`.",
+    why: "OpenCode installs the plugin's skills from its own package, not Cursor's plugin cache",
+  },
   {
     find: /~\/\.cursor\/skills\//g,
     replace: "~/.config/opencode/skills/",
@@ -398,6 +437,31 @@ export const rules: Rule[] = [
 
   // ── poteto-help: install, modes, and what ships where ─────────────────────────────────────────────
   {
+    find: "1. Install with `/add-plugin pstack` in chat, or from Customize in the sidebar.",
+    replace: "1. Install with `opencode plugin add github:kakadiadarpan/pstack-opencode` in a terminal, then start a new session.",
+    why: "OpenCode installs plugins from the CLI",
+  },
+  {
+    find: "maps a model to each role, and writes a rule. The rule applies to new chats.",
+    replace: "maps a model to each role, and writes the pstack model sheet. The plugin reads the sheet on every request, so it applies at once.",
+    why: "the plugin re-reads the sheet on every request",
+  },
+  {
+    find: "| A new model choice had no effect | The rule from `/setup-pstack` applies to new chats. Start one. |",
+    replace: "| A new model choice had no effect | A line in the project's `.opencode/pstack/models.md` wins over the same role in `~/.config/opencode/pstack/models.md`. The pstack model sheet in the system prompt names the files it read and each role's resolved model. |",
+    why: "the sheet applies at once, so a stale choice means a project line overrides it",
+  },
+  {
+    find: "| Build a page whose buttons wake a Grok Bot over a webhook | [`/make-bot-ui`](../make-bot-ui/SKILL.md) |\n",
+    replace: "",
+    why: "make-bot-ui is dropped",
+  },
+  {
+    find: "The [README](../../README.md) and",
+    replace: "The [README](../../../README.md) and",
+    why: "the port ships its own README at the package root, not upstream's beside dist/",
+  },
+  {
     find: "and mention once that a Custom Mode keeps it on.",
     replace: "and mention once that the Poteto agent (`Tab` cycles agents) keeps it on.",
     why: "OpenCode's always-on mode is a primary agent",
@@ -408,9 +472,9 @@ export const rules: Rule[] = [
     why: "the port's public copy lives in this repository under dist/",
   },
   {
-    find: "pstack is built for Cursor. Its skills use the Agent Skills format, so other tools can read them. But most workflow skills, including `/poteto-mode`, `/how`, `/why`, and `/teach`, spawn Cursor subagents with per-role models, and Custom Modes and `/loop` are Cursor features, so those parts may not work there.",
+    find: "pstack is built for Cursor, and it also installs in Claude Code with `/plugin marketplace add cursor/plugins`, then `/plugin install pstack@cursor-plugins`. There, each command takes a `pstack:` prefix, such as `/pstack:poteto-mode`. The [Claude Code adapter](../../docs/harness/claude-code.md) maps the Cursor names, and a step that needs a Cursor-only feature, such as Bugbot or Automations, is skipped with a one-line note.\n\nOther tools can read the skills, because they use the Agent Skills format. But most workflow skills, including `/poteto-mode`, `/how`, `/why`, and `/teach`, spawn Cursor subagents with per-role models, and Custom Modes and `/loop` are Cursor features, so those parts may not work there.",
     replace: "This is pstack's OpenCode port. Its plugin supplies what the workflow skills need from the host: the `poteto-agent` and `comment-sicko` subagents, the Poteto agent for an always-on mode, the `todo`, `loop`, and `transcripts` tools, the `/loop` command, a slash command per skill, and the model sheet that `/setup-pstack` writes.",
-    why: "the port supplies the host features upstream gets from Cursor",
+    why: "the port supplies the host features upstream gets from Cursor, and it does not ship the Claude Code adapter",
   },
   {
     find: /Whether `\/poteto-mode` stays on depends on how the user starts it:[\s\S]*?when this comes up\./g,
@@ -455,6 +519,11 @@ export const rules: Rule[] = [
     why: "the port bundles deslop",
   },
   {
+    find: "**Treating `auto` as a model slug.**",
+    replace: "**Treating `auto` as a model ref.**",
+    why: "OpenCode names models by `provider/model#variant` refs, not slugs",
+  },
+  {
     find: "- `/loop` is Cursor's built-in wake mechanism, not a pstack skill.",
     replace: "- `/loop` is the wake mechanism the pstack plugin adds to OpenCode. The agent can also arm it itself through the `loop` tool.",
     why: "the plugin provides /loop",
@@ -483,6 +552,28 @@ export const rules: Rule[] = [
     find: "One prompt can carry a whole Project,",
     replace: "One prompt can carry a whole program,",
     why: "OpenCode has no Projects",
+  },
+  {
+    find: "and Projects and automations that scale past one agent.",
+    replace: "and coordinator sessions and automations that scale past one agent.",
+    why: "OpenCode has no Projects",
+  },
+  {
+    find: /## Build a bot UI with `\/make-bot-ui`\n\n[^\n]*\n\n/g,
+    replace: "",
+    why: "make-bot-ui is dropped",
+  },
+
+  // ── ketchup: Cursor's built-in /visualize → Mermaid ───────────────────────────────────────────────
+  {
+    find: "a Mermaid diagram, a chart or diagram from `/visualize`, or a generated image.",
+    replace: "a Mermaid diagram or chart, or a generated image.",
+    why: "`/visualize` is a Cursor built-in with no OpenCode equivalent",
+  },
+  {
+    find: "a Mermaid diagram for how things connect and a `/visualize` chart for numbers.",
+    replace: "a Mermaid diagram for how things connect and a Mermaid chart, such as `xychart-beta`, for numbers.",
+    why: "`/visualize` is a Cursor built-in with no OpenCode equivalent",
   },
 
   // ── Benny automation pack: Cursor Automations → your own trigger running `opencode run` ──────────

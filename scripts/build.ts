@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 // Builds dist/ from vendor/ (verbatim upstream) + port/rules.ts + port/overrides + port/additions.
 // Fails when a rule stops matching (upstream drifted) or a Cursor-ism survives into dist/.
+import { existsSync } from "node:fs"
 import { cp, mkdir, readdir, rename, rm, stat } from "node:fs/promises"
 import { dirname, join, relative } from "node:path"
 import { rules, type Rule } from "../port/rules.ts"
@@ -12,6 +13,8 @@ const finalDist = join(root, "dist")
 // reloads a half-written tree.
 const dist = join(root, ".dist-build")
 const overridesDir = join(root, "port/overrides")
+// dist path -> git blob id of the upstream file that override was last reconciled with.
+const overridePinsPath = join(root, "port/overrides.json")
 const additionsDir = join(root, "port/additions")
 
 // vendor path prefix -> dist path prefix. Unlisted vendor files are not shipped.
@@ -25,8 +28,9 @@ const layout: [from: string, to: string][] = [
   ["vendor/cursor-team-kit/LICENSE", "licenses/cursor-team-kit-LICENSE"],
 ]
 
-// Cursor-only features with no OpenCode equivalent.
-const dropped = ["skills/make-bot-ui/"]
+// Cursor-only features with no OpenCode equivalent, and upstream's Claude Code adapter, which the
+// rules in port/rules.ts replace for OpenCode.
+const dropped = ["skills/make-bot-ui/", "docs/harness/"]
 
 const isText = (path: string) => /\.(md|mdc|txt|ya?ml|tsv)$/.test(path)
 
@@ -50,6 +54,10 @@ function target(vendorRel: string) {
   }
 }
 
+// Same id as `git hash-object`, so `git diff <pinned> <current>` shows what upstream changed.
+const blobId = (bytes: Uint8Array) =>
+  new Bun.CryptoHasher("sha1").update(`blob ${bytes.byteLength}\0`).update(bytes).digest("hex")
+
 function applies(rule: Rule, path: string) {
   return rule.files ? rule.files.test(path) : path.endsWith(".md")
 }
@@ -71,15 +79,20 @@ function apply(rule: Rule, text: string): [string, number] {
 await rm(dist, { recursive: true, force: true })
 
 const overrides = new Set((await walk(overridesDir)).map((p) => relative(overridesDir, p)))
+const overridden = new Map<string, { vendor: string; blob: string }>()
 const hits = new Map<Rule, number>(rules.map((r) => [r, 0]))
 const written: string[] = []
 
 for (const file of await walk(join(root, "vendor"))) {
-  const out = target(relative(root, file))
+  const vendor = relative(root, file)
+  const out = target(vendor)
   if (!out) continue
   const dest = join(dist, out)
   await mkdir(dirname(dest), { recursive: true })
-  if (overrides.has(out)) continue
+  if (overrides.has(out)) {
+    overridden.set(out, { vendor, blob: blobId(await Bun.file(file).bytes()) })
+    continue
+  }
   if (!isText(out)) {
     await cp(file, dest)
     written.push(out)
@@ -114,12 +127,31 @@ for (const [rule, count] of hits) {
   if (count < min) problems.push(`rule matched ${count}x (want >= ${min}): ${String(rule.find).slice(0, 120)}`)
 }
 
+const pins: Record<string, string> = await Bun.file(overridePinsPath).json()
+for (const rel of [...overrides].sort()) {
+  const source = overridden.get(rel)
+  const pin = pins[rel]
+  if (!source) problems.push(`port/overrides/${rel} replaces no upstream file. Move it to port/additions/.`)
+  else if (pin !== source.blob)
+    problems.push(
+      `upstream changed ${source.vendor}, which port/overrides/${rel} replaces. Port the change (${pin ? `git diff ${pin} ${source.blob}` : "no pin yet"}), then pin "${rel}": "${source.blob}" in port/overrides.json.`,
+    )
+}
+for (const rel of Object.keys(pins)) if (!overrides.has(rel)) problems.push(`port/overrides.json pins ${rel}, which has no override.`)
+
 for (const rel of written.filter((p) => p.endsWith(".md")).sort()) {
   const lines = (await Bun.file(join(dist, rel)).text()).split("\n")
   lines.forEach((line, i) => {
     for (const pattern of residue) {
       const match = line.match(pattern)
       if (match && !allowed(rel, line, match[0])) problems.push(`${rel}:${i + 1}: residue "${match[0]}": ${line.trim().slice(0, 160)}`)
+    }
+    // Guide images are not vendored (upstream.json excludes them), so image links are skipped. A
+    // target with no "/" or "." is a template placeholder such as `[PR #123](url)`.
+    for (const [, href] of line.matchAll(/(?<!!)\[[^\]]*\]\(([^)\s]+)\)/g)) {
+      const path = href!.replace(/[#?].*/, "")
+      if (!path || /^[a-z][a-z0-9+.-]*:/i.test(path) || (!path.includes("/") && !path.includes("."))) continue
+      if (!existsSync(join(dist, dirname(rel), path))) problems.push(`${rel}:${i + 1}: dangling link "${href}"`)
     }
   })
 }

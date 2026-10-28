@@ -1,19 +1,30 @@
 {
   "remote": "https://github.com/cursor/plugins",
   "ref": "main",
-  "sha": "e5136d82418d2db3165ea1050d17577cd618cc05",
+  "sha": "c742dd61706fbacc1b95f1a20b7b988cf096ce6c",
   "components": [
     {
       "name": "pstack",
       "from": "pstack",
       "to": "vendor/pstack",
-      "exclude": [".cursor-plugin/", ".gitignore", "assets/", "docs/guide/images/"]
+      "exclude": [
+        ".cursor-plugin/",
+        ".gitignore",
+        "assets/",
+        "docs/guide/images/",
+        "skills/statechart/scripts/test/"
+      ]
     },
     {
       "name": "cursor-team-kit",
       "from": "cursor-team-kit",
       "to": "vendor/cursor-team-kit",
-      "include": ["LICENSE", "skills/deslop/", "skills/control-cli/", "skills/control-ui/"]
+      "include": [
+        "LICENSE",
+        "skills/deslop/",
+        "skills/control-cli/",
+        "skills/control-ui/"
+      ]
     }
   ]
 }

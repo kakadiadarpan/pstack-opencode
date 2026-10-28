@@ -1,5 +1,5 @@
 {
-  "upstream": "e5136d82418d2db3165ea1050d17577cd618cc05",
+  "upstream": "c742dd61706fbacc1b95f1a20b7b988cf096ce6c",
   "skills": [
     {
       "id": "architect",
@@ -63,6 +63,13 @@
       "file": "skills/correct/SKILL.md"
     },
     {
+      "id": "create-formal-verification-skill",
+      "name": "create-formal-verification-skill",
+      "description": "Generate a project-local skill that formally verifies the code where a bug costs the most and tests reach the least, in any language, with whichever verification tool fits. Use for /create-formal-verification-skill, \"model-check this race\", \"prove this invariant\", or when concurrency, retries, state machines, parsers, or unsafe code need more than tests.",
+      "autoinvoke": false,
+      "file": "skills/create-formal-verification-skill/SKILL.md"
+    },
+    {
       "id": "create-skill",
       "name": "create-skill",
       "description": "Author or revise an OpenCode skill (SKILL.md) so agents discover it at the right time and follow it. Use for \"create a skill\", \"write a SKILL.md\", \"turn this into a skill\", tuning a skill's description so it triggers, or editing an existing skill substantially.",
@@ -105,16 +112,30 @@
     {
       "id": "interrogate",
       "name": "interrogate",
-      "description": "Use for \"interrogate\", \"adversarial review\", \"multi-model review\", \"challenge this\", \"stress test this code\", \"find blind spots\", or \"tear this apart\". Multiple LLM reviewers challenge changes from independent angles.",
+      "description": "Use for \"interrogate\", \"adversarial review\", \"multi-model review\", \"challenge this\", \"stress test this code\", \"find blind spots\", or \"tear this apart\". Adversaries try to break a change or design, and only findings proven by a run survive.",
       "autoinvoke": false,
       "file": "skills/interrogate/SKILL.md"
     },
     {
+      "id": "ketchup-video",
+      "name": "ketchup-video",
+      "description": "Catch the user up like /ketchup, with a short subtitled video of slides for what happened and the waiting calls as text under it. Use for /ketchup-video.",
+      "autoinvoke": false,
+      "file": "skills/ketchup-video/SKILL.md"
+    },
+    {
       "id": "ketchup",
       "name": "ketchup",
-      "description": "Catch the user up on what changed in this chat since their last message, in a few plain sentences and small visuals. Give each action item just enough context to make the call. Use for /ketchup.",
+      "description": "Catch the user up on what changed in this chat since their last message, in plain words and small visuals. List every item waiting on them with what they need to decide it from the reply alone. Use for /ketchup.",
       "autoinvoke": false,
       "file": "skills/ketchup/SKILL.md"
+    },
+    {
+      "id": "maintain-formal-verification-skill",
+      "name": "maintain-formal-verification-skill",
+      "description": "Bring a project's formal verification back in line with the code after the code changes: find the commits that touched verified code, update the model, harness, or properties to describe the code as it is now, rerun, and say whether each failure is drift in the verification or a bug in the code. Use for /maintain-formal-verification-skill, \"is the model still true to the code\", or after merges and refactors that touched verified code without rechecking it.",
+      "autoinvoke": false,
+      "file": "skills/maintain-formal-verification-skill/SKILL.md"
     },
     {
       "id": "maintain-verification-skill",
@@ -139,7 +160,7 @@
     },
     {
       "id": "poteto-mode",
-      "name": "Poteto Mode",
+      "name": "poteto-mode",
       "description": "poteto's agent style for concise, detailed responses, deliberate subagents, unslopped prose, simple code, and verified work. Use for poteto, /poteto-mode, or requests to work in this style.",
       "autoinvoke": false,
       "file": "skills/poteto-mode/SKILL.md"
@@ -189,7 +210,7 @@
     {
       "id": "principle-explain-the-number",
       "name": "principle-explain-the-number",
-      "description": "Apply before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or an eval result. Find what limits it, and rule out that it measured something other than the work you think.",
+      "description": "Apply before you measure, and before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or an eval result. Find what limits it, and rule out that it measured something other than the work you think.",
       "autoinvoke": false,
       "file": "skills/principle-explain-the-number/SKILL.md"
     },
@@ -308,7 +329,7 @@
     {
       "id": "principle-type-system-discipline",
       "name": "principle-type-system-discipline",
-      "description": "Apply when designing types, reviewing a function signature, or writing code in any statically-typed language. Make illegal states unrepresentable, brand semantic primitives, parse external data at boundaries, refuse to lie to the compiler, exhaust variants, derive from authoritative schemas.",
+      "description": "Apply when designing types, reviewing a function signature, or writing code in any statically-typed language. Make illegal states unrepresentable, brand semantic primitives, parse external data at boundaries, exhaust variants, derive from authoritative schemas.",
       "autoinvoke": false,
       "file": "skills/principle-type-system-discipline/SKILL.md"
     },
@@ -335,7 +356,7 @@
     {
       "id": "sharpen",
       "name": "sharpen",
-      "description": "Sharpen a task before starting: the expert approach, what the user is really after, and the right level of specification. Use for /sharpen.",
+      "description": "Make a task deeper, not bigger, then rewrite the prompt. Use for /sharpen.",
       "autoinvoke": false,
       "file": "skills/sharpen/SKILL.md"
     },
@@ -345,6 +366,13 @@
       "description": "Keep a reviewable decision trail for long-running or unattended work: a TSV log with one row per decision (what, why, evidence, result). Local by default; commit it when a reviewer needs the trail to trust the result. Use for /show-me-your-work, autonomous or multi-phase runs, or work a human reviews after stepping away.",
       "autoinvoke": false,
       "file": "skills/show-me-your-work/SKILL.md"
+    },
+    {
+      "id": "statechart",
+      "name": "statechart",
+      "description": "Check a TLA+ model of a system that moves between states, such as a product flow, a protocol, or a service, and draw it as a Mermaid statechart. The report gives the shortest path to each state that breaks a rule. Use for /statechart, or to show a bug as a path through states.",
+      "autoinvoke": false,
+      "file": "skills/statechart/SKILL.md"
     },
     {
       "id": "swarm",

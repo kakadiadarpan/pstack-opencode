@@ -19,6 +19,15 @@ export const residue: RegExp[] = [
   /is_background/,
   /Custom Mode/i,
   /\btodolist\b/,
+  /(?<![<-])\bslugs?\b(?![>-])/,
+  /plugins\/cache/,
+  /cloud[ _-]?(?:agents?|VMs?|workers?|subagents?|base_branch)\b/i,
+  /make-bot-ui|Grok Bot/,
+  /\/add-plugin\b|Customize in the sidebar/,
+  /applies to new chats/,
+  /\bagent(?:'s)? store\b/,
+  /`\/visualize`/,
+  /\bProject (?:tracker|store)\b/,
 ]
 
 // [dist path regex, substring of the offending line]
@@ -26,6 +35,8 @@ const allow: [RegExp, string][] = [
   [/^skills\/typescript-best-practices\//, "readonly"],
   [/^skills\/why\/SKILL\.md$/, "cursor location"],
   [/^skills\/poteto-mode\/playbooks\/multi-phase-plan\.md$/, "## <Task as a verb phrase>"],
+  [/^skills\/poteto-mode\/playbooks\/eval\.md$/, "slug names"],
+  [/^skills\/why\/references\/sources\/sentry\.md$/, "project slug"],
   [/^licenses\//, ""],
 ]
 
