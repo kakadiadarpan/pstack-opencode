@@ -19,6 +19,8 @@ export const residue: RegExp[] = [
   /is_background/,
   /Custom Mode/i,
   /\btodolist\b/,
+  /(?<![<-])\bslugs?\b(?![>-])/,
+  /plugins\/cache/,
 ]
 
 // [dist path regex, substring of the offending line]
@@ -26,6 +28,8 @@ const allow: [RegExp, string][] = [
   [/^skills\/typescript-best-practices\//, "readonly"],
   [/^skills\/why\/SKILL\.md$/, "cursor location"],
   [/^skills\/poteto-mode\/playbooks\/multi-phase-plan\.md$/, "## <Task as a verb phrase>"],
+  [/^skills\/poteto-mode\/playbooks\/eval\.md$/, "slug names"],
+  [/^skills\/why\/references\/sources\/sentry\.md$/, "project slug"],
   [/^licenses\//, ""],
 ]
 

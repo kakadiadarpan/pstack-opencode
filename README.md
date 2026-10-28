@@ -32,6 +32,7 @@ Upstream pstack leans on Cursor features. The plugin maps each one onto OpenCode
 | `agent-transcripts/` | A `transcripts` tool that exports sessions as JSONL in Cursor's layout. |
 | `/poteto-mode`, `/how`, and other slash skills | One slash command per skill. `@skill-id` also works. |
 | Cloud subagents | A git worktree per worker, created with `worktree_create`. |
+| A Project's coordinator chat, tracker, and store | A long-lived coordinator session. Playbook state goes in a per-project pstack store under `~/.local/share/opencode/pstack/store/`, and the plugin names its path in every request. |
 | `cursor-team-kit`'s `deslop`, `control-cli`, `control-ui` | Bundled. |
 | Cursor's built-in `create-skill` | A bundled `create-skill` skill written for OpenCode. |
 
@@ -51,6 +52,9 @@ Plugin options go in the object form of the plugin entry:
 - Subagents run on your machine. An overnight run needs the machine awake.
 - The benny automation pack is ported, but OpenCode has no hosted automations. You host the Slack trigger that runs `opencode run`. See [`dist/automations/benny`](dist/automations/benny/README.md).
 - `make-bot-ui` is dropped. It drives Cursor's Grok Bot routines, which have no OpenCode equivalent.
+- Upstream's Claude Code adapter (`docs/harness/claude-code.md`) is not shipped. The plugin and `port/rules.ts` do its job for OpenCode.
+- `statechart` ships without `scripts/test/`, upstream's development suite for the chart compiler.
+- OpenCode has no PR or CI event subscriptions, so an Orchestrate coordinator learns of progress from its subagents' completion notices and live `gh` checks.
 - A skill you already have with the same ID (for example your own `unslop`) takes precedence over the bundled one.
 - `worktree-audit.sh` still looks for Cursor transcripts when it reports the newest chat that touched a worktree, so that column stays empty.
 

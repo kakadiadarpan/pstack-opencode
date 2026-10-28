@@ -20,7 +20,7 @@ const runtime = (sessionID: string, store: string) =>
     "- A role's model from the pstack model sheet below counts as the user explicitly asking for that model, so pass it as the subagent `model`.",
     "- The todo list is the `todo` tool. Wake-ups and `/loop` are the `loop` tool. Past sessions are the `transcripts` tool. Isolated checkouts come from the `worktree_create` tool.",
     `- This session's ID is ${sessionID}.`,
-    `- The pstack store for this project (where playbooks keep ledgers, trails, and orchestrate state) is ${store}.`,
+    `- The pstack store for this project (where playbooks keep decision trails, plans, agent records, and orchestrate state) is ${store}.`,
   ].join("\n")
 
 export default Plugin.define({

@@ -25,8 +25,9 @@ const layout: [from: string, to: string][] = [
   ["vendor/cursor-team-kit/LICENSE", "licenses/cursor-team-kit-LICENSE"],
 ]
 
-// Cursor-only features with no OpenCode equivalent.
-const dropped = ["skills/make-bot-ui/"]
+// Cursor-only features with no OpenCode equivalent, and upstream's Claude Code adapter, which the
+// rules in port/rules.ts replace for OpenCode.
+const dropped = ["skills/make-bot-ui/", "docs/harness/"]
 
 const isText = (path: string) => /\.(md|mdc|txt|ya?ml|tsv)$/.test(path)
 
