@@ -63,7 +63,7 @@ Plugin options go in the object form of the plugin entry:
 `vendor/` holds upstream files byte for byte, pinned in `upstream.json`. `scripts/build.ts` turns them into `dist/` in three passes:
 
 1. `port/rules.ts` rewrites Cursor vocabulary. Every rule must still match, so an upstream rewrite fails the build instead of shipping stale text.
-2. `port/overrides/` replaces the few files that are Cursor-specific end to end, such as `setup-pstack`.
+2. `port/overrides/` replaces the few files that are Cursor-specific end to end, such as `setup-pstack`. `port/overrides.json` pins the upstream version each override was written against, so an upstream edit to a replaced file fails the build and prints the `git diff` to port.
 3. `port/additions/` adds files upstream does not have, such as the Poteto agent and `create-skill`.
 
 Then `port/lint.ts` fails the build on any Cursor-only term left in `dist/`.
@@ -73,7 +73,7 @@ To pull a new upstream version:
 ```sh
 bun install
 bun run sync:latest   # move the pin and re-vendor
-bun run dist          # fix any failing rule or lint hit, then rebuild
+bun run dist          # fix any failing rule, override pin, or lint hit, then rebuild
 bun test && bun run typecheck
 ```
 
