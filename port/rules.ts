@@ -233,6 +233,41 @@ export const rules: Rule[] = [
     replace: "another OpenCode session ID, or a pushed branch.",
     why: "OpenCode has no cloud-agent URLs",
   },
+  {
+    find: "from a transcript, cloud-agent URL, or pushed branch.",
+    replace: "from a transcript, another OpenCode session ID, or a pushed branch.",
+    why: "OpenCode has no cloud-agent URLs",
+  },
+  {
+    find: "When a worker must start from a non-default pushed branch, pass `cloud_base_branch`.",
+    replace: "When a worker must start from a non-default pushed branch, name the branch in its brief and have it check the branch out in its worktree first.",
+    why: "OpenCode's subagent tool has no base-branch field; the worker checks out the branch itself",
+  },
+  {
+    find: "| Run parallel checks over slices, or race workers, as cloud agents |",
+    replace: "| Run parallel checks over slices, or race workers, each in its own worktree |",
+    why: "OpenCode has no cloud agents",
+  },
+  {
+    find: "Give each agent its own worktree, or run them as cloud agents, which each get their own machine.",
+    replace: "Give each agent its own git worktree, made with the `worktree_create` tool.",
+    why: "OpenCode has no cloud agents",
+  },
+  {
+    find: "Run them as cloud agents, or say \"own worktree per attempt\".",
+    replace: "Say \"own worktree per attempt\".",
+    why: "OpenCode has no cloud agents",
+  },
+  {
+    find: "an isolated worktree or cloud agent,",
+    replace: "an isolated worktree,",
+    why: "OpenCode has no cloud agents",
+  },
+  {
+    find: "write the file under the agent store's `docs/`.",
+    replace: "write the file under `docs/` in the pstack store (path in the system prompt).",
+    why: "Cursor names a per-agent store; the plugin names a per-project pstack store",
+  },
 
   // ── Transcripts: agent-transcripts/ → the plugin's `transcripts` tool ─────────────────────────────
   {
@@ -345,10 +380,10 @@ export const rules: Rule[] = [
     why: "the port bundles the control skills",
   },
   {
-    find: / \(?from `cursor-team-kit`\)?/g,
+    find: / (?:\(from `cursor-team-kit`\)|from `cursor-team-kit`)/g,
     replace: "",
     count: 4,
-    why: "the port bundles these skills",
+    why: "the port bundles these skills. A bare `from` never takes a parenthesis, which can close an outer `(such as ...`",
   },
 
   // ── Paths ─────────────────────────────────────────────────────────────────────────────────────────
@@ -401,6 +436,31 @@ export const rules: Rule[] = [
   },
 
   // ── poteto-help: install, modes, and what ships where ─────────────────────────────────────────────
+  {
+    find: "1. Install with `/add-plugin pstack` in chat, or from Customize in the sidebar.",
+    replace: "1. Install with `opencode plugin add github:kakadiadarpan/pstack-opencode` in a terminal, then start a new session.",
+    why: "OpenCode installs plugins from the CLI",
+  },
+  {
+    find: "maps a model to each role, and writes a rule. The rule applies to new chats.",
+    replace: "maps a model to each role, and writes the pstack model sheet. The plugin reads the sheet on every request, so it applies at once.",
+    why: "the plugin re-reads the sheet on every request",
+  },
+  {
+    find: "| A new model choice had no effect | The rule from `/setup-pstack` applies to new chats. Start one. |",
+    replace: "| A new model choice had no effect | A line in the project's `.opencode/pstack/models.md` wins over the same role in `~/.config/opencode/pstack/models.md`. The pstack model sheet in the system prompt names the files it read and each role's resolved model. |",
+    why: "the sheet applies at once, so a stale choice means a project line overrides it",
+  },
+  {
+    find: "| Build a page whose buttons wake a Grok Bot over a webhook | [`/make-bot-ui`](../make-bot-ui/SKILL.md) |\n",
+    replace: "",
+    why: "make-bot-ui is dropped",
+  },
+  {
+    find: "The [README](../../README.md) and",
+    replace: "The [README](../../../README.md) and",
+    why: "the port ships its own README at the package root, not upstream's beside dist/",
+  },
   {
     find: "and mention once that a Custom Mode keeps it on.",
     replace: "and mention once that the Poteto agent (`Tab` cycles agents) keeps it on.",
@@ -492,6 +552,28 @@ export const rules: Rule[] = [
     find: "One prompt can carry a whole Project,",
     replace: "One prompt can carry a whole program,",
     why: "OpenCode has no Projects",
+  },
+  {
+    find: "and Projects and automations that scale past one agent.",
+    replace: "and coordinator sessions and automations that scale past one agent.",
+    why: "OpenCode has no Projects",
+  },
+  {
+    find: /## Build a bot UI with `\/make-bot-ui`\n\n[^\n]*\n\n/g,
+    replace: "",
+    why: "make-bot-ui is dropped",
+  },
+
+  // ── ketchup: Cursor's built-in /visualize → Mermaid ───────────────────────────────────────────────
+  {
+    find: "a Mermaid diagram, a chart or diagram from `/visualize`, or a generated image.",
+    replace: "a Mermaid diagram or chart, or a generated image.",
+    why: "`/visualize` is a Cursor built-in with no OpenCode equivalent",
+  },
+  {
+    find: "a Mermaid diagram for how things connect and a `/visualize` chart for numbers.",
+    replace: "a Mermaid diagram for how things connect and a Mermaid chart, such as `xychart-beta`, for numbers.",
+    why: "`/visualize` is a Cursor built-in with no OpenCode equivalent",
   },
 
   // ── Benny automation pack: Cursor Automations → your own trigger running `opencode run` ──────────

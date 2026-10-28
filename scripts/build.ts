@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 // Builds dist/ from vendor/ (verbatim upstream) + port/rules.ts + port/overrides + port/additions.
 // Fails when a rule stops matching (upstream drifted) or a Cursor-ism survives into dist/.
+import { existsSync } from "node:fs"
 import { cp, mkdir, readdir, rename, rm, stat } from "node:fs/promises"
 import { dirname, join, relative } from "node:path"
 import { rules, type Rule } from "../port/rules.ts"
@@ -144,6 +145,13 @@ for (const rel of written.filter((p) => p.endsWith(".md")).sort()) {
     for (const pattern of residue) {
       const match = line.match(pattern)
       if (match && !allowed(rel, line, match[0])) problems.push(`${rel}:${i + 1}: residue "${match[0]}": ${line.trim().slice(0, 160)}`)
+    }
+    // Guide images are not vendored (upstream.json excludes them), so image links are skipped. A
+    // target with no "/" or "." is a template placeholder such as `[PR #123](url)`.
+    for (const [, href] of line.matchAll(/(?<!!)\[[^\]]*\]\(([^)\s]+)\)/g)) {
+      const path = href!.replace(/[#?].*/, "")
+      if (!path || /^[a-z][a-z0-9+.-]*:/i.test(path) || (!path.includes("/") && !path.includes("."))) continue
+      if (!existsSync(join(dist, dirname(rel), path))) problems.push(`${rel}:${i + 1}: dangling link "${href}"`)
     }
   })
 }

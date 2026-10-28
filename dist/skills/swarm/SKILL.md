@@ -26,7 +26,7 @@ Open a todo list with one entry per phase before launching anything.
 
 Spawn all N workers in one message with `agent: "general"`, `background: true`, and the step 3 model, left unset for `auto` or `inherit-parent`. Give each worker that edits files, builds, or runs the app its own git worktree: create it with the `worktree_create` tool, put its absolute path in the brief, and tell the worker to set `workdir` on every shell call and use absolute paths. Read-only workers share the current checkout.
 
-When a worker must start from a non-default pushed branch, pass `cloud_base_branch`.
+When a worker must start from a non-default pushed branch, name the branch in its brief and have it check the branch out in its worktree first.
 
 Every brief stands alone. Include the goal, scope, exact slice or race arm, how to verify, and what to report. Reports use `PASS`, `ISSUES`, or `BLOCKED` with evidence. A worker that can prove a defect reports `ISSUES` and lists every issue it can prove, not only the first.
 

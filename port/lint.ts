@@ -21,6 +21,13 @@ export const residue: RegExp[] = [
   /\btodolist\b/,
   /(?<![<-])\bslugs?\b(?![>-])/,
   /plugins\/cache/,
+  /cloud[ _-]?(?:agents?|VMs?|workers?|subagents?|base_branch)\b/i,
+  /make-bot-ui|Grok Bot/,
+  /\/add-plugin\b|Customize in the sidebar/,
+  /applies to new chats/,
+  /\bagent(?:'s)? store\b/,
+  /`\/visualize`/,
+  /\bProject (?:tracker|store)\b/,
 ]
 
 // [dist path regex, substring of the offending line]

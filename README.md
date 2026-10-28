@@ -66,7 +66,7 @@ Plugin options go in the object form of the plugin entry:
 2. `port/overrides/` replaces the few files that are Cursor-specific end to end, such as `setup-pstack`. `port/overrides.json` pins the upstream version each override was written against, so an upstream edit to a replaced file fails the build and prints the `git diff` to port.
 3. `port/additions/` adds files upstream does not have, such as the Poteto agent and `create-skill`.
 
-Then `port/lint.ts` fails the build on any Cursor-only term left in `dist/`.
+Then `port/lint.ts` fails the build on any Cursor-only term left in `dist/`, and the build fails on any relative link to a file the package does not ship.
 
 To pull a new upstream version:
 
