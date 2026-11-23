@@ -1,7 +1,7 @@
 {
   "remote": "https://github.com/cursor/plugins",
   "ref": "main",
-  "sha": "6b0300214a09fd6029cfb7077043125758cd1fd2",
+  "sha": "7a583913eb1b8d1a0ee76753d1a2cf072e7b54f9",
   "components": [
     {
       "name": "pstack",
